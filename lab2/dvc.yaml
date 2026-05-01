@@ -1,0 +1,41 @@
+stages:
+  download_data:
+    cmd: python -c "import dvc.api; from src.training.download_data import download_data; cfg=dvc.api.params_show(); download_data(cfg['pipeline']['data'])"
+    params:
+      - pipeline.data.kaggle_competition
+      - pipeline.data.raw_data_path
+    outs:
+      - data/raw/train.csv
+
+  process_data:
+    cmd: python -c "import dvc.api; from src.training.process_data import process_data; cfg=dvc.api.params_show(); process_data(cfg['pipeline']['data'])"
+    deps:
+      - data/raw/train.csv
+      - src/training/process_data.py
+    params:
+      - pipeline.data
+    outs:
+      - data/processed/titanic-train.parquet
+      - data/processed/titanic-test.parquet
+
+  train:
+    cmd: python -c "import dvc.api; from src.training.train import train; cfg=dvc.api.params_show(); train(cfg['pipeline'])"
+    deps:
+      - data/processed/titanic-train.parquet
+      - src/training/train.py
+    params:
+      - pipeline.model
+    outs:
+      - models/
+
+  evaluate:
+    cmd: python -c "import dvc.api; from src.training.evaluate import evaluate; cfg=dvc.api.params_show(); evaluate(cfg['pipeline'])"
+    deps:
+      - data/processed/titanic-test.parquet
+      - models/
+      - src/training/evaluate.py
+    params:
+      - pipeline.model.reports_path
+    metrics:
+      - reports/metrics.json:
+          cache: false
