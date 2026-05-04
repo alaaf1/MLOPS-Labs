@@ -93,3 +93,17 @@ data/raw/
 data/processed/
 models/
 reports/
+
+# Data and models — tracked by DVC not Git
+data/
+models/
+reports/
+
+# Hydra outputs — not needed
+outputs/
+lab2/outputs/
+
+# Python
+__pycache__/
+*.pyc
+.env
