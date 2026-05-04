@@ -37,5 +37,5 @@ stages:
     params:
       - pipeline.model.reports_path
     metrics:
-      - reports/metrics.json:
+      - reports/evaluation_report.json :
           cache: false
