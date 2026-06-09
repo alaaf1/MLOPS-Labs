@@ -1,0 +1,111 @@
+schema: '2.0'
+stages:
+  download_data:
+    cmd: python src/training/download_data.py
+    params:
+      params.yaml:
+        pipeline.data.kaggle_competition: titanic
+        pipeline.data.raw_data_path: data/raw
+    outs:
+    - path: data/raw/train.csv
+      hash: md5
+      md5: 2309cc5f04782ed9bb6016d9f4e381cf
+      size: 61194
+  process_data:
+    cmd: python src/training/process_data.py
+    deps:
+    - path: data/raw/train.csv
+      hash: md5
+      md5: 2309cc5f04782ed9bb6016d9f4e381cf
+      size: 61194
+    - path: src/training/process_data.py
+      hash: md5
+      md5: deb3a52032b41d11651b2acda806468f
+      size: 1378
+    params:
+      params.yaml:
+        pipeline.data:
+          kaggle_competition: titanic
+          raw_data_path: data/raw
+          raw_file: train.csv
+          processed_data_path: data/processed
+          train_file: titanic-train.parquet
+          test_file: titanic-test.parquet
+          target_col: Survived
+          test_size: 0.15
+          random_state: 42
+          rare_title_threshold: 10
+          drop_cols:
+          - Name
+          - Ticket
+          - Cabin
+          - PassengerId
+    outs:
+    - path: data/processed/titanic-test.parquet
+      hash: md5
+      md5: 8490e787a60fbc3a9655f45d4fa9a07f
+      size: 8909
+    - path: data/processed/titanic-train.parquet
+      hash: md5
+      md5: 072ba9b1cb3b8344d0d320080b029fc7
+      size: 15923
+  train:
+    cmd: python src/training/train.py
+    deps:
+    - path: data/processed/titanic-train.parquet
+      hash: md5
+      md5: 072ba9b1cb3b8344d0d320080b029fc7
+      size: 15923
+    - path: src/training/train.py
+      hash: md5
+      md5: 02fd2056fde15a909496b0d6678aafb5
+      size: 4546
+    params:
+      params.yaml:
+        pipeline.model:
+          models_path: models
+          reports_path: reports
+          cv_folds: 5
+          scoring: roc_auc
+          random_forest:
+            n_estimators: 100
+            max_depth: 6
+            random_state: 42
+          logistic_regression:
+            max_iter: 1000
+            random_state: 42
+          repo_name: MLOPS-Labs
+          use_mlflow: true
+          experiment_name: titanic-experiment
+          tracking_uri: https://dagshub.com/alaaf1/MLOPS-Labs.mlflow
+          model_name: titanic-model
+    outs:
+    - path: models/
+      hash: md5
+      md5: 7163ca3eb211debb1d7b8b454adf57e5.dir
+      size: 621232
+      nfiles: 2
+  evaluate:
+    cmd: python src/training/evaluate.py
+    deps:
+    - path: data/processed/titanic-test.parquet
+      hash: md5
+      md5: 8490e787a60fbc3a9655f45d4fa9a07f
+      size: 8909
+    - path: models/
+      hash: md5
+      md5: 7163ca3eb211debb1d7b8b454adf57e5.dir
+      size: 621232
+      nfiles: 2
+    - path: src/training/evaluate.py
+      hash: md5
+      md5: a0934373e5afc649943d1d1652bd864e
+      size: 2323
+    params:
+      params.yaml:
+        pipeline.model.reports_path: reports
+    outs:
+    - path: reports/evaluation_report.json
+      hash: md5
+      md5: 83b112b908b532c3f254d8adfdadfc3c
+      size: 241

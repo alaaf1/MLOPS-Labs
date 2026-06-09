@@ -1,0 +1,36 @@
+pipeline:
+  data:
+    kaggle_competition: "titanic"
+    raw_data_path: "data/raw"
+    raw_file: "train.csv"
+    processed_data_path: "data/processed"
+    train_file: "titanic-train.parquet"
+    test_file: "titanic-test.parquet"
+    target_col: "Survived"
+    test_size: 0.15
+    random_state: 42
+    rare_title_threshold: 10
+    drop_cols:
+      - "Name"
+      - "Ticket"
+      - "Cabin"
+      - "PassengerId"
+
+  model:
+    models_path: "models"
+    reports_path: "reports"
+    cv_folds: 5
+    scoring: "roc_auc"
+    random_forest:
+      n_estimators: 100
+      max_depth: 6
+      random_state: 42
+    logistic_regression:
+      max_iter: 1000
+      random_state: 42
+    # MLflow settings
+    repo_name: "MLOPS-Labs"
+    use_mlflow: true
+    experiment_name: "titanic-experiment"
+    tracking_uri: "https://dagshub.com/alaaf1/MLOPS-Labs.mlflow"
+    model_name: "titanic-model"
